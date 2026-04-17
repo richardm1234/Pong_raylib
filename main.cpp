@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include <iostream>
+#include <math.h>
 
 struct Ball {
     Vector2 pos;
@@ -13,6 +14,8 @@ struct Player {
     int score;
 };
 
+#define velX -5.0f
+#define velY 1.0f
 void movePlayer(Player& board, int key) {
     
     if (key == KEY_UP) {
@@ -26,12 +29,22 @@ void movePlayer(Player& board, int key) {
     }
 }
 
-void moveBot(Player& board, Ball& b) {
+void moveBot(Player& bot, Ball& b) {
     
-    if (board.y <= 0 || board.y + board.h >= GetScreenHeight()) {
-        board.velocity = -board.velocity;
+    if (bot.y <= 0 || bot.y + bot.h >= GetScreenHeight()) {
+        bot.velocity = -bot.velocity;
     }
-    board.y -= board.velocity;
+    float timeNeeded = (bot.x - b.pos.x) / b.velocity.x;
+    float predY = b.pos.y + b.velocity.y * timeNeeded;
+    
+    float center = bot.y + bot.h / 2.0f;
+    if (center == predY) {
+        bot.velocity = 0;
+    } else if (center > predY) {
+        bot.y -= bot.velocity;
+    } else {
+        bot.y += bot.velocity;
+    }
     
 }
 
@@ -40,15 +53,44 @@ void score(Ball& b, Player& p) {
     b.pos.x = GetScreenWidth()/2;
     b.pos.y = GetScreenHeight()/2;
 }
+
+void changeDirection(Ball& b, float center) {
+    float dirY;
+    float speed = fabsf(b.velocity.y);
+    
+    if (b.velocity.y > 0) {
+        if (b.pos.y <= center) {
+            b.velocity.y = speed;
+        } else {
+            b.velocity.y = -speed;
+        }
+    } else if (b.velocity.y < 0) {
+            if (b.pos.y <= center) {
+                b.velocity.y = -speed;
+            } else {
+                b.velocity.y = speed;
+            }
+    } else {
+        b.velocity.y = 0;
+    }
+
+    b.velocity.x = -b.velocity.x;
+}
+
 void moveBall(Ball& b, Player& p1, Player& p2) {
-    if (b.velocity.x < 0) {
+    float centerP1 = p1.y + p1.h / 2.0f;
+    float centerP2 = p2.y + p2.h / 2.0f;
+    float speed = fabsf(b.velocity.y);
+
+    if (b.pos.y - b.radius <= 0 || b.pos.y + b.radius >= GetScreenHeight()) {
+        b.velocity.y = -b.velocity.y;
+    } else if (b.velocity.x < 0) {
         if (b.pos.x - b.radius <= 0) {
             score(b, p2);
             return;
         }
         if (b.pos.x - b.radius <= p1.x + p1.w && b.pos.y <= p1.y + p1.h && b.pos.y >= p1.y) {
-            b.velocity.x = -b.velocity.x;
-            b.velocity.y = -b.velocity.y;
+            changeDirection(b, centerP1);
         }
     } else {
         if (b.pos.x + b.radius >= GetScreenWidth()) {
@@ -56,8 +98,7 @@ void moveBall(Ball& b, Player& p1, Player& p2) {
             return;
         }
         if (b.pos.x + b.radius >= p2.x && b.pos.y <= p2.y + p2.h && b.pos.y >= p2.y) {
-            b.velocity.x = -b.velocity.x;
-            b.velocity.y = -b.velocity.y;
+            changeDirection(b, centerP2);
         }
     }
     b.pos.x += b.velocity.x;
