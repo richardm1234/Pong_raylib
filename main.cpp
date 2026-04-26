@@ -55,7 +55,6 @@ void score(Ball& b, Player& p) {
 }
 
 void changeDirection(Ball& b, float center) {
-    float dirY;
     float speed = fabsf(b.velocity.y);
     
     if (b.velocity.y > 0) {
@@ -80,7 +79,6 @@ void changeDirection(Ball& b, float center) {
 void moveBall(Ball& b, Player& p1, Player& p2) {
     float centerP1 = p1.y + p1.h / 2.0f;
     float centerP2 = p2.y + p2.h / 2.0f;
-    float speed = fabsf(b.velocity.y);
 
     if (b.pos.y - b.radius <= 0 || b.pos.y + b.radius >= GetScreenHeight()) {
         b.velocity.y = -b.velocity.y;
@@ -135,7 +133,8 @@ int main() {
             DrawCircleV({p1.x, p1.y}, 5.0f, RED);
             DrawRectangle(p2.x, p2.y, p2.w, p2.h, WHITE);
             DrawText("Pong Game", W/2 - 50, 25, 20, WHITE);
-            DrawText(TextFormat("%d %d", p1.score, p2.score), W/2 - 25, 50, 20, RED);
+            DrawText(TextFormat("%d %d", p1.score, p2.score), W/2 - 15, 50, 20, RED);
+            DrawFPS(0, 0);
         EndDrawing();
     }
 
